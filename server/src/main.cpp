@@ -1,7 +1,17 @@
 #include <iostream>
+#include "tcp_server/TcpServer.hpp"
 
-int main() {
+int main()
+{
+    try
+    {
+        server::TCPServer tcpServer;
+        tcpServer.run();
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 
-    std::cout << "Hello, World!" << std::endl;
     return 0;
 }
