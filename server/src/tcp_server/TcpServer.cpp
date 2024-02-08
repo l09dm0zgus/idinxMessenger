@@ -5,7 +5,7 @@
 #include "TcpConnection.hpp"
 #include <iostream>
 
-server::TCPServer::TCPServer() : serverAcceptor(ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(),1488))
+server::TCPServer::TCPServer() : serverAcceptor(ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 1488))
 {
     startAccept();
 }
@@ -13,7 +13,7 @@ server::TCPServer::TCPServer() : serverAcceptor(ioContext, boost::asio::ip::tcp:
 void server::TCPServer::startAccept()
 {
     serverAcceptor.async_accept([this](boost::system::error_code errorCode, boost::asio::ip::tcp::socket socket) {
-        if(errorCode)
+        if (errorCode)
         {
             std::cout << "Error: " << errorCode.message() << "\n";
         }
@@ -27,7 +27,7 @@ void server::TCPServer::startAccept()
 
 void server::TCPServer::hanldeConnection(const std::shared_ptr<TCPConnection> &connection, const boost::system::error_code &errorCode)
 {
-    if(errorCode)
+    if (errorCode)
     {
         std::cout << "Error: " << errorCode.message() << "\n";
     }

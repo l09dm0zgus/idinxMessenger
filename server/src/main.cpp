@@ -1,5 +1,5 @@
-#include <iostream>
 #include "tcp_server/TcpServer.hpp"
+#include <iostream>
 
 int main()
 {
@@ -8,7 +8,7 @@ int main()
         server::TCPServer tcpServer;
         tcpServer.run();
     }
-    catch (std::exception& e)
+    catch (std::exception &e)
     {
         std::cerr << e.what() << std::endl;
     }

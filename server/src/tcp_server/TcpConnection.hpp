@@ -14,15 +14,13 @@ namespace server
     public:
         explicit TCPConnection(boost::asio::ip::tcp::socket socket);
         void start();
-    private:
 
+    private:
         static constexpr int BUFFER_SIZE = 1024;
-        std::array<char, BUFFER_SIZE> buffer {0};
+        std::array<char, BUFFER_SIZE> buffer{0};
         boost::asio::ip::tcp::socket clientSocket;
 
-        void handleWrite(const boost::system::error_code& error, std::size_t bytesTransferred);
+        void handleWrite(const boost::system::error_code &error, std::size_t bytesTransferred);
         void handleRead();
-
     };
-}
-
+}// namespace server
