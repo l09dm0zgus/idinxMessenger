@@ -16,6 +16,7 @@ namespace server
     public:
         explicit TCPServer();
         void run();
+
     private:
         std::vector<std::shared_ptr<TCPConnection>> clients;
         void startAccept();
@@ -24,4 +25,4 @@ namespace server
         boost::asio::ip::tcp::acceptor serverAcceptor;
     };
 
-}
+}// namespace server
