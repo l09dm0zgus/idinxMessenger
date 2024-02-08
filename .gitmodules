@@ -1,3 +1,6 @@
 [submodule "submodules/boost"]
 	path = submodules/boost
 	url = https://github.com/boostorg/boost.git
+[submodule "server/submodules/libpqxx"]
+	path = server/submodules/libpqxx
+	url = https://github.com/jtv/libpqxx.git
