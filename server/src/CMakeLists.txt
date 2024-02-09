@@ -6,8 +6,10 @@ target_sources(${SERVER_TARGET_NAME} PUBLIC main.cpp tcp_server/TcpServer.hpp
         tcp_server/TcpServer.cpp
         tcp_server/TcpConnection.hpp
         tcp_server/TcpConnection.cpp
+        utils/Logger.hpp
+        utils/Logger.cpp
 )
-target_link_libraries(${SERVER_TARGET_NAME} pqxx Boost::asio Boost::log Boost::beast Boost::json)
+target_link_libraries(${SERVER_TARGET_NAME} pqxx Boost::asio Boost::log_setup Boost::log Boost::beast Boost::json)
 
 if(WIN32)
     target_link_libraries(${SERVER_TARGET_NAME} wsock32 ws2_32)
