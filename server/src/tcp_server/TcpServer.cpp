@@ -3,11 +3,25 @@
 //
 #include "TcpServer.hpp"
 #include "../utils/Logger.hpp"
+#include "../config/ConfigManager.hpp"
+#include "../config/ServerConfig.hpp"
 #include "TcpConnection.hpp"
 #include <iostream>
 
-server::TCPServer::TCPServer() : serverAcceptor(ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 1488)), signals(ioContext)
+server::TCPServer::TCPServer() : serverAcceptor(ioContext), signals(ioContext)
 {
+    boost::asio::ip::tcp::resolver resolver(ioContext);
+
+    auto hostname = config::ConfigManager::getConfig<config::ServerConfig>()->getHostname();
+    auto port = config::ConfigManager::getConfig<config::ServerConfig>()->getPort();
+
+    boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(hostname, std::to_string(port)).begin();
+    serverAcceptor.open(endpoint.protocol());
+    serverAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+    serverAcceptor.bind(endpoint);
+    BOOST_LOG_TRIVIAL(info) << "Starting accepting sockets on: " << hostname << ":" << port;
+    serverAcceptor.listen();
+
     signals.add(SIGINT);
     signals.add(SIGTERM);
 #if defined(SIGQUIT)
@@ -35,8 +49,21 @@ void server::TCPServer::startAccept()
 
 void server::TCPServer::run()
 {
-    for (int i = 0; i < 4; i++)
+    int usedThreads = 0;
+    if(config::ConfigManager::getConfig<config::ServerConfig>()->getUsedThreads() == -1)
     {
+        usedThreads = std::thread::hardware_concurrency();
+    }
+    else
+    {
+        usedThreads = config::ConfigManager::getConfig<config::ServerConfig>()->getUsedThreads();
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Number of aviable threads: " << usedThreads;
+
+    for (int i = 0; i < usedThreads; i++)
+    {
+        BOOST_LOG_TRIVIAL(info) << "Creating thread: " << i;
         mainThreadPool.create_thread([this]() {
             ioContext.run();
         });
