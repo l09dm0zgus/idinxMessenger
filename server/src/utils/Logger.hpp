@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include <boost/log/trivial.hpp>
 #include <boost/assert.hpp>
+#include <boost/log/trivial.hpp>
 #include <sstream>
 
 namespace utils
@@ -18,11 +18,13 @@ namespace utils
     class Logger
     {
     private:
-      static constexpr std::string_view FILE_NAME = "logs/idinxServer_%N_%Y-%m-%d_%H-%M-%S.log";
-      static constexpr std::string_view FORMAT = "[%TimeStamp%] - PID = %ProcessID% - TID = %ThreadID% : [%Severity%] %Message%";
+        static constexpr std::string_view FILE_NAME = "logs/idinxServer_%N_%Y-%m-%d_%H-%M-%S.log";
+        static constexpr std::string_view FORMAT = "[%TimeStamp%] - PID = %ProcessID% - TID = %ThreadID% : [%Severity%] %Message%";
+
     public:
         static void initialize();
     };
 
-#define ASSERT_LOG(expr, msg) if(!expr) { BOOST_LOG_TRIVIAL(fatal) <<"Assertion :" << #expr << " failed. Message: " << msg;  }
-}
+#define ASSERT_LOG(expr, msg) \
+    if (!expr) { BOOST_LOG_TRIVIAL(fatal) << "Assertion :" << #expr << " failed. Message: " << msg; }
+}// namespace utils

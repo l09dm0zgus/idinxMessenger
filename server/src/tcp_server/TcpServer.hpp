@@ -4,7 +4,9 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/system.hpp>
+#include <boost/thread.hpp>
 #include <memory>
 #include <vector>
 
@@ -18,11 +20,13 @@ namespace server
         void run();
 
     private:
-        std::vector<std::shared_ptr<TCPConnection>> clients;
+        void doAsyncStop();
         void startAccept();
-        void hanldeConnection(const std::shared_ptr<TCPConnection> &connection, const boost::system::error_code &errorCode);
         boost::asio::io_context ioContext;
         boost::asio::ip::tcp::acceptor serverAcceptor;
+        boost::thread_group mainThreadPool;
+        boost::asio::signal_set signals;
+        boost::asio::executor_work_guard<decltype(ioContext.get_executor())> work{ioContext.get_executor()};
     };
 
 }// namespace server

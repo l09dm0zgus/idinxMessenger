@@ -1,16 +1,18 @@
 #include "tcp_server/TcpServer.hpp"
 #include <iostream>
+#include "utils/Logger.hpp"
 
 int main()
 {
     try
     {
+        utils::Logger::initialize();
         server::TCPServer tcpServer;
         tcpServer.run();
     }
     catch (std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Exception : " << e.what();
     }
 
     return 0;
