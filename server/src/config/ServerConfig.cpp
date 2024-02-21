@@ -6,7 +6,7 @@
 #include "../utils/Logger.hpp"
 #include <fstream>
 
-config::ServerConfig::ServerConfig(const std::string_view &configDirectory)
+config::ServerConfig::ServerConfig(const std::filesystem::path &configDirectory)
 {
     pathToConfigFile = std::filesystem::path(configDirectory);
     pathToConfigFile = pathToConfigFile / "server.conf";

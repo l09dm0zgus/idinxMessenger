@@ -5,6 +5,7 @@
 #include <map>
 #include <typeinfo>
 #include <memory>
+#include <filesystem>
 #include "IConfig.hpp"
 #include "../utils/Logger.hpp"
 
@@ -15,13 +16,13 @@ namespace config
     private:
         using ConfigsContainer = std::unordered_map<size_t ,std::shared_ptr<IConfig>>;
         static ConfigsContainer configs;
-        static constexpr std::string_view CONFIGS_FOLDER = "configs";
+        static std::filesystem::path configsFolder;
     public:
         static void initialize();
         template<class T>
         static void addConfig()
         {
-            configs[typeid(T).hash_code()] = std::make_shared<T>(CONFIGS_FOLDER);
+            configs[typeid(T).hash_code()] = std::make_shared<T>(configsFolder);
         }
 
         template<class T>

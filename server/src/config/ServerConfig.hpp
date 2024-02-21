@@ -21,7 +21,7 @@ namespace config
         void readConfigFile();
         void writeConfigFile();
     public:
-        explicit ServerConfig(const std::string_view &configDirectory);
+        explicit ServerConfig(const std::filesystem::path &configDirectory);
         [[nodiscard]] std::string getHostname() const noexcept;
         [[nodiscard]] int getPort() const noexcept;
         [[nodiscard]] int getUsedThreads() const noexcept;
