@@ -13,7 +13,13 @@ target_sources(${SERVER_TARGET_NAME} PUBLIC main.cpp
         config/ConfigManager.hpp
         config/IConfig.hpp
         config/ServerConfig.cpp
-        config/ServerConfig.hpp)
+        config/ServerConfig.hpp
+        config/DatabaseConfig.hpp
+        config/DatabaseConfig.cpp
+        config/DatabaseConfig.cpp
+        config/DatabaseConfig.hpp
+        database/Connection.cpp
+        database/Connection.hpp)
 target_link_libraries(${SERVER_TARGET_NAME} pqxx Boost::asio Boost::log_setup Boost::log Boost::beast Boost::json)
 
 if(WIN32)

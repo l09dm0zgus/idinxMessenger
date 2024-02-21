@@ -3,6 +3,8 @@
 #include "utils/Logger.hpp"
 #include "config/ConfigManager.hpp"
 #include "config/ServerConfig.hpp"
+#include "config/DatabaseConfig.hpp"
+#include "database/Connection.hpp"
 
 int main()
 {
@@ -12,7 +14,9 @@ int main()
         utils::Logger::initialize();
         config::ConfigManager::initialize();
         config::ConfigManager::addConfig<config::ServerConfig>();
+        config::ConfigManager::addConfig<config::DatabaseConfig>();
         server::TCPServer tcpServer;
+        auto con = db::Connection::connect();
         tcpServer.run();
     }
     catch (std::exception &e)
