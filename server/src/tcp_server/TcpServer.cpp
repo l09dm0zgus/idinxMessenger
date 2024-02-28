@@ -16,17 +16,41 @@ server::TCPServer::TCPServer() : serverAcceptor(ioContext), signals(ioContext)
     auto port = config::ConfigManager::getConfig<config::ServerConfig>()->getPort();
 
     boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(hostname, std::to_string(port)).begin();
-    serverAcceptor.open(endpoint.protocol());
-    serverAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    serverAcceptor.bind(endpoint);
-    BOOST_LOG_TRIVIAL(info) << "Starting accepting sockets on: " << hostname << ":" << port;
-    serverAcceptor.listen();
 
+    boost::beast::error_code  errorCode;
+
+    serverAcceptor.open(endpoint.protocol(), errorCode);
+    if(errorCode)
+    {
+        BOOST_LOG_TRIVIAL(error) << errorCode.message();
+    }
+
+    serverAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), errorCode);
+    if(errorCode)
+    {
+        BOOST_LOG_TRIVIAL(error) << errorCode.message();
+    }
+
+    serverAcceptor.bind(endpoint, errorCode);
+    if(errorCode)
+    {
+        BOOST_LOG_TRIVIAL(error) << errorCode.message();
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Starting accepting sockets on: " << hostname << ":" << port;
+    serverAcceptor.listen(boost::asio::socket_base::max_listen_connections, errorCode);
+    if(errorCode)
+    {
+        BOOST_LOG_TRIVIAL(error) << errorCode.message();
+    }
     signals.add(SIGINT);
     signals.add(SIGTERM);
 #if defined(SIGQUIT)
     signals.add(SIGQUIT);
 #endif// defined(SIGQUIT
+
+
+    router = std::make_shared<rest::Router>();
 
     doAsyncStop();
     startAccept();
@@ -41,7 +65,8 @@ void server::TCPServer::startAccept()
         }
         else
         {
-            std::make_shared<TCPConnection>(std::move(socket))->start();
+            std::cout << "Connected user\n";
+            std::make_shared<TCPConnection>(std::move(socket), router)->start();
         }
         startAccept();
     });

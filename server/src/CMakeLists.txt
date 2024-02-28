@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(idinxMessenger)
 
-add_executable(${SERVER_TARGET_NAME})
+add_executable(${SERVER_TARGET_NAME}
+        http/IRoute.hpp)
 target_sources(${SERVER_TARGET_NAME} PUBLIC main.cpp
         tcp_server/TcpServer.hpp
         tcp_server/TcpServer.cpp
@@ -19,7 +20,9 @@ target_sources(${SERVER_TARGET_NAME} PUBLIC main.cpp
         config/DatabaseConfig.cpp
         config/DatabaseConfig.hpp
         database/Connection.cpp
-        database/Connection.hpp)
+        database/Connection.hpp
+        http/Router.cpp
+        http/Router.hpp)
 target_link_libraries(${SERVER_TARGET_NAME} pqxx Boost::asio Boost::log_setup Boost::log Boost::beast Boost::json)
 
 if(WIN32)
