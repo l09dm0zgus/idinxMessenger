@@ -29,7 +29,7 @@ void config::ConfigManager::initialize()
         BOOST_LOG_TRIVIAL(error) << ex.what();
     }
 #else
-    if(!std::filesystem::exists(CONFIGS_FOLDER))
+    if(!std::filesystem::exists(configsFolder))
     {
         std::filesystem::create_directory(configsFolder);
     }
