@@ -17,8 +17,8 @@ namespace config
         std::filesystem::path pathToConfigFile;
         std::string hostname = "localhost";
         int port = 5432;
-        std::string userPassword = "postgres";
-        std::string userLogin = "your_password";
+        std::string userPassword = "your_password";
+        std::string userLogin = "postgres";
         std::string dbName = "idinxserverdb";
         void readConfigFile();
         void writeConfigFile();
