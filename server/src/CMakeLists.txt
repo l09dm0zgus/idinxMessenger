@@ -23,7 +23,7 @@ target_sources(${SERVER_TARGET_NAME} PUBLIC main.cpp
         database/Connection.hpp
         http/Router.cpp
         http/Router.hpp)
-target_link_libraries(${SERVER_TARGET_NAME} pqxx Boost::asio Boost::log_setup Boost::log Boost::beast Boost::json)
+target_link_libraries(${SERVER_TARGET_NAME} pqxx cryptopp::cryptopp Boost::asio Boost::log_setup Boost::log Boost::beast Boost::json)
 
 if(WIN32)
     target_link_libraries(${SERVER_TARGET_NAME} wsock32 ws2_32)

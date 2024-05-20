@@ -4,3 +4,9 @@
 [submodule "server/submodules/libpqxx"]
 	path = server/submodules/libpqxx
 	url = https://github.com/jtv/libpqxx.git
+[submodule "client/submodules/SQLiteCpp"]
+	path = client/submodules/SQLiteCpp
+	url = https://github.com/SRombauts/SQLiteCpp.git
+[submodule "submodules/cryptopp-cmake"]
+	path = submodules/cryptopp-cmake
+	url = https://github.com/abdes/cryptopp-cmake.git

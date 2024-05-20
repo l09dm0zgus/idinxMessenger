@@ -5,6 +5,7 @@
 #include "config/ServerConfig.hpp"
 #include "config/DatabaseConfig.hpp"
 #include "database/Connection.hpp"
+#include <aes.h>
 
 int main()
 {
