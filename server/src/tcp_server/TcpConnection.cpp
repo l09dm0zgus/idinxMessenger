@@ -9,7 +9,7 @@
 
 void server::TCPConnection::start()
 {
-    handleRead();
+    sendRSAPublicKey();
 }
 
 void server::TCPConnection::handleRead()
@@ -50,10 +50,37 @@ void server::TCPConnection::handleWrite(const boost::system::error_code &error, 
 
 server::TCPConnection::TCPConnection(boost::asio::ip::tcp::socket &&socket, const std::shared_ptr<rest::Router> &newRouter) : router(newRouter), stream(std::move(socket))
 {
+    parameters.GenerateRandomWithKeySize(randomNumberGenerator,RSA_KEY_LENGTH);
+    publicKey = std::make_shared<CryptoPP::RSA::PublicKey>(parameters);
+    privateKey = std::make_shared<CryptoPP::RSA::PrivateKey>(parameters);
 }
 
 void server::TCPConnection::close()
 {
     boost::beast::error_code ec;
     stream.socket().shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
+}
+
+void server::TCPConnection::sendRSAPublicKey()
+{
+    CryptoPP::ByteQueue byteQueue;
+    publicKey->Save(byteQueue);
+
+    std::array<std::byte,RSA_KEY_LENGTH> bytes;
+    for(int i = 0;i < byteQueue.CurrentSize(); i++)
+    {
+        bytes[i] = static_cast<std::byte>(byteQueue[i]);
+    }
+
+    auto self(shared_from_this());
+    boost::asio::async_write(stream.socket(),boost::asio::buffer(bytes,byteQueue.CurrentSize()),[this, self](const boost::system::error_code &errorCode, std::size_t bytesTransferred) {
+        if(errorCode)
+        {
+            BOOST_LOG_TRIVIAL(error) << errorCode.message();
+        }
+        else
+        {
+            handleRead();
+        }
+    });
 }
