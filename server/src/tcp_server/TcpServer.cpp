@@ -66,7 +66,10 @@ void server::TCPServer::startAccept()
         else
         {
             std::cout << "Connected user\n";
-            std::make_shared<TCPConnection>(std::move(socket), router)->start();
+            auto connection = std::make_shared<TCPConnection>(std::move(socket), router);
+            connection->start();
+            numberOfConnections++;
+            connections[numberOfConnections] = connection;
         }
         startAccept();
     });
@@ -84,7 +87,7 @@ void server::TCPServer::run()
         usedThreads = config::ConfigManager::getConfig<config::ServerConfig>()->getUsedThreads();
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Number of aviable threads: " << usedThreads;
+    BOOST_LOG_TRIVIAL(info) << "Number of available threads: " << usedThreads;
 
     for (int i = 0; i < usedThreads; i++)
     {

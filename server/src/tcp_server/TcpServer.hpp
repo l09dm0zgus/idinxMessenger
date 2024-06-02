@@ -27,6 +27,8 @@ namespace server
     private:
         void doAsyncStop();
         void startAccept();
+        std::unordered_map<long long,std::shared_ptr<TCPConnection>> connections;
+        long long numberOfConnections{0};
         boost::asio::io_context ioContext;
         boost::asio::ip::tcp::acceptor serverAcceptor;
         boost::thread_group mainThreadPool;
