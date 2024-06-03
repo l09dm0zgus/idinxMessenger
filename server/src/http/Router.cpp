@@ -4,9 +4,9 @@
 
 #include "Router.hpp"
 #include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
 
-rest::Response rest::Router::handleRequest(const rest::Request &request)
+
+rest::Response rest::Router::handleRequest(const server::Connection &clientConnection, const rest::Request &request)
 {
     auto const badRequest = [&request](std::string_view why) {
         Response response{boost::beast::http::status::bad_request, request.version()};
@@ -41,7 +41,7 @@ rest::Response rest::Router::handleRequest(const rest::Request &request)
     auto target = request.target();
     if (routes.count(target))
     {
-        return routes[target]->handleRequest(request);
+        return routes[target]->handleRequest(clientConnection,request);
     }
     else
     {

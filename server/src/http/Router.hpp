@@ -17,7 +17,7 @@ namespace rest
         std::unordered_map<std::string_view, std::shared_ptr<IRoute>> routes;
 
     public:
-        Response handleRequest(const Request &request);
+        Response handleRequest(const server::Connection &clientConnection, const Request &request);
 
         template<class T, typename ...Args>
         void addRoute(const std::string_view &route, Args &&...args)
