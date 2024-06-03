@@ -68,6 +68,8 @@ void server::TCPServer::startAccept()
             std::cout << "Connected user\n";
             auto connection = std::make_shared<TCPConnection>(std::move(socket), router);
             connection->start();
+            connection->setID(numberOfConnections);
+
             numberOfConnections++;
             connections[numberOfConnections] = connection;
         }
