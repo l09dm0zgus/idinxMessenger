@@ -4,14 +4,36 @@
 
 #pragma once
 #include <boost/beast.hpp>
+#include <boost/json.hpp>
+#include <sstream>
+
+namespace server
+{
+    class TCPConnection;
+    using Connection = std::shared_ptr<TCPConnection>;
+}
 
 namespace rest
 {
     using Request = boost::beast::http::request<boost::beast::http::string_body>;
     using Response = boost::beast::http::response<boost::beast::http::string_body>;
+    namespace json = boost::json;
+
+    enum class StatusCodes
+    {
+        FAILED_TO_DECRYPT_BODY = -100,
+        FAILED_TO_PARSE_BODY,
+        OK = 1,
+    };
+
     class IRoute
     {
+    private:
+        static std::string createResponseBody(const std::string_view &what, StatusCodes code);
+    protected:
+        static Response createResponse(boost::beast::http::status status,const std::string_view &what,StatusCodes statusCodes,const rest::Request &request);
     public:
-        virtual Response handleRequest(const Request &request) = 0;
+        virtual ~IRoute() = default;
+        virtual Response handleRequest(const server::Connection &clientConnection , const Request &request) = 0;
     };
 }// namespace rest
