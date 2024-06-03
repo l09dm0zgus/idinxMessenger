@@ -6,9 +6,10 @@
 #include <array>
 #include <boost/asio.hpp>
 #include <boost/system.hpp>
-#include "../http/Router.hpp"
 #include <rsa.h>
 #include <osrng.h>
+#include <boost/beast.hpp>
+#include "../http/Router.hpp"
 
 namespace server
 {
@@ -16,6 +17,10 @@ namespace server
     {
     public:
         explicit TCPConnection(boost::asio::ip::tcp::socket &&socket, const std::shared_ptr<rest::Router> &newRouter);
+
+        bool decrypt(const std::string& encryptedData, std::string& decryptedData);
+        void setID(long long newID);
+        long long getID() const noexcept;
         void start();
 
         static constexpr int RSA_KEY_LENGTH = 2048;
@@ -28,8 +33,9 @@ namespace server
         CryptoPP::InvertibleRSAFunction parameters;
         std::shared_ptr<CryptoPP::RSA::PublicKey> publicKey;
         std::shared_ptr<CryptoPP::RSA::PrivateKey> privateKey;
+        long long id{0};
 
-        void handleWrite(const boost::system::error_code &error, std::size_t bytesTransferred, const rest::Response &response);
+        void handleWrite([[maybe_unused]] const  boost::system::error_code & error, [[maybe_unused]] std::size_t bytesTransferred, const rest::Response &response);
         void handleRead();
         void sendRSAPublicKey();
 
