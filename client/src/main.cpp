@@ -3,26 +3,20 @@
 //
 
 #include "http/HttpRequest.hpp"
-#include <boost/asio.hpp>
-#include <boost/beast.hpp>
-#include <boost/beast/websocket.hpp>
-#include <iostream>
-
-using boost::asio::ip::tcp;
-
+#include "application/Application.hpp"
 static constexpr int BUFFER_SIZE = 1024;
 
-int main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
+
+    app::Application app;
+    app.run();
+
+    /*
     try
     {
 
-        boost::asio::io_context ioContext;
-        tcp::socket s(ioContext);
-        boost::asio::ip::tcp::resolver resolver(ioContext);
 
-        boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve("localhost", std::to_string(1488)).begin();
-        s.connect(endpoint);
 
         rest::HttpRequest<rest::Method::POST> request("huy/1", "localhost", "application/json", "{jopa = 1488}");
 
@@ -39,6 +33,9 @@ int main(int argc, char *argv[])
     {
         std::cerr << "Exception: " << e.what() << "\n";
     }
+
+    return 0;
+     */
 
     return 0;
 }

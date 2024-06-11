@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 project(idinxMessenger)
 
 add_executable(${SERVER_TARGET_NAME}
-        http/IRoute.hpp)
+        http/IRoute.hpp
+        http/Registration.cpp
+        http/Registration.hpp
+        http/IRoute.cpp)
 target_sources(${SERVER_TARGET_NAME} PUBLIC main.cpp
         tcp_server/TcpServer.hpp
         tcp_server/TcpServer.cpp
