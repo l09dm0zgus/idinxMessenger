@@ -15,13 +15,13 @@ std::string rest::IRoute::createResponseBody(const std::string_view &what, Statu
     return ss.str();
 }
 
-rest::Response rest::IRoute::createResponse(boost::beast::http::status status, const std::string_view &what, StatusCodes statusCodes, const Request &request)
+std::shared_ptr<rest::Response> rest::IRoute::createResponse(boost::beast::http::status status, const std::string_view &what, StatusCodes statusCodes, const Request &request)
 {
-    Response response {status, request.version()};
-    response.set(boost::beast::http::field::server, "idinxServer/1488");
-    response.set(boost::beast::http::field::content_type, "application/json");
-    response.keep_alive(request.keep_alive());
-    response.body() = createResponseBody(what,statusCodes);
-    response.prepare_payload();
+    auto response  = std::make_shared<Response>(status, request.version());
+    response->set(boost::beast::http::field::server, "idinxServer/1488");
+    response->set(boost::beast::http::field::content_type, "application/json");
+    response->keep_alive(request.keep_alive());
+    response->body() = createResponseBody(what,statusCodes);
+    response->prepare_payload();
     return response;
 }

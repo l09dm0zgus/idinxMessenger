@@ -23,6 +23,9 @@ namespace rest
     {
         FAILED_TO_DECRYPT_BODY = -100,
         FAILED_TO_PARSE_BODY,
+        USER_WITH_LOGIN_EXIST,
+        USER_WITH_EMAIL_EXIST,
+        DATABASE_NOT_RESPONDING,
         OK = 1,
     };
 
@@ -31,9 +34,9 @@ namespace rest
     private:
         static std::string createResponseBody(const std::string_view &what, StatusCodes code);
     protected:
-        static Response createResponse(boost::beast::http::status status,const std::string_view &what,StatusCodes statusCodes,const rest::Request &request);
+        static std::shared_ptr<Response> createResponse(boost::beast::http::status status,const std::string_view &what,StatusCodes statusCodes,const rest::Request &request);
     public:
         virtual ~IRoute() = default;
-        virtual Response handleRequest(const server::Connection &clientConnection , const Request &request) = 0;
+        virtual std::shared_ptr<Response> handleRequest(const server::Connection &clientConnection , const Request &request) = 0;
     };
 }// namespace rest
