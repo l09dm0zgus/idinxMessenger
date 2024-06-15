@@ -4,14 +4,16 @@
 #include "TcpServer.hpp"
 #include "../utils/Logger.hpp"
 #include "../config/ConfigManager.hpp"
+#include "../http/Registration.hpp"
 #include "../config/ServerConfig.hpp"
 #include "TcpConnection.hpp"
 #include <iostream>
 
+
 server::TCPServer::TCPServer() : serverAcceptor(ioContext), signals(ioContext)
 {
     boost::asio::ip::tcp::resolver resolver(ioContext);
-
+    strand = std::make_shared<boost::asio::io_context::strand>(ioContext);
     auto hostname = config::ConfigManager::getConfig<config::ServerConfig>()->getHostname();
     auto port = config::ConfigManager::getConfig<config::ServerConfig>()->getPort();
 
@@ -51,6 +53,7 @@ server::TCPServer::TCPServer() : serverAcceptor(ioContext), signals(ioContext)
 
 
     router = std::make_shared<rest::Router>();
+    router->addRoute<rest::Registration>("/registration");
 
     doAsyncStop();
     startAccept();
@@ -66,7 +69,7 @@ void server::TCPServer::startAccept()
         else
         {
             std::cout << "Connected user\n";
-            auto connection = std::make_shared<TCPConnection>(std::move(socket), router);
+            auto connection = std::make_shared<TCPConnection>(std::move(socket), router,*strand);
             connection->start();
             connection->setID(numberOfConnections);
 

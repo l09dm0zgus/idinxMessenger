@@ -32,6 +32,7 @@ namespace server
         boost::asio::io_context ioContext;
         boost::asio::ip::tcp::acceptor serverAcceptor;
         boost::thread_group mainThreadPool;
+        std::shared_ptr<boost::asio::io_context::strand> strand;
         boost::asio::signal_set signals;
         boost::asio::executor_work_guard<decltype(ioContext.get_executor())> work{ioContext.get_executor()};
         std::shared_ptr<rest::Router> router;
