@@ -12,19 +12,18 @@ namespace auth
     class Registration
     {
     public:
-        struct AccountData
-        {
+        struct AccountData {
             std::string login;
             std::string password;
             std::string email;
         };
+
     private:
         std::shared_ptr<Connection> connection;
-        std::string serializeAccountData(const AccountData& accountData);
+        std::string serializeAccountData(const AccountData &accountData);
 
     public:
-        explicit Registration(const std::shared_ptr<Connection>& newConnection);
-        std::string registerNewAccount(const AccountData& accountData);
+        explicit Registration(const std::shared_ptr<Connection> &newConnection);
+        std::string registerNewAccount(const AccountData &accountData);
     };
-}
-
+}// namespace auth

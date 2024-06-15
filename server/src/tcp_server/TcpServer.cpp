@@ -2,10 +2,10 @@
 // Created by cx9ps3 on 06.02.2024.
 //
 #include "TcpServer.hpp"
-#include "../utils/Logger.hpp"
 #include "../config/ConfigManager.hpp"
-#include "../http/Registration.hpp"
 #include "../config/ServerConfig.hpp"
+#include "../http/Registration.hpp"
+#include "../utils/Logger.hpp"
 #include "TcpConnection.hpp"
 #include <iostream>
 
@@ -19,29 +19,29 @@ server::TCPServer::TCPServer() : serverAcceptor(ioContext), signals(ioContext)
 
     boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(hostname, std::to_string(port)).begin();
 
-    boost::beast::error_code  errorCode;
+    boost::beast::error_code errorCode;
 
     serverAcceptor.open(endpoint.protocol(), errorCode);
-    if(errorCode)
+    if (errorCode)
     {
         BOOST_LOG_TRIVIAL(error) << errorCode.message();
     }
 
     serverAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), errorCode);
-    if(errorCode)
+    if (errorCode)
     {
         BOOST_LOG_TRIVIAL(error) << errorCode.message();
     }
 
     serverAcceptor.bind(endpoint, errorCode);
-    if(errorCode)
+    if (errorCode)
     {
         BOOST_LOG_TRIVIAL(error) << errorCode.message();
     }
 
     BOOST_LOG_TRIVIAL(info) << "Starting accepting sockets on: " << hostname << ":" << port;
     serverAcceptor.listen(boost::asio::socket_base::max_listen_connections, errorCode);
-    if(errorCode)
+    if (errorCode)
     {
         BOOST_LOG_TRIVIAL(error) << errorCode.message();
     }
@@ -69,7 +69,7 @@ void server::TCPServer::startAccept()
         else
         {
             std::cout << "Connected user\n";
-            auto connection = std::make_shared<TCPConnection>(std::move(socket), router,*strand);
+            auto connection = std::make_shared<TCPConnection>(std::move(socket), router, *strand);
             connection->start();
             connection->setID(numberOfConnections);
 
@@ -83,7 +83,7 @@ void server::TCPServer::startAccept()
 void server::TCPServer::run()
 {
     int usedThreads = 0;
-    if(config::ConfigManager::getConfig<config::ServerConfig>()->getUsedThreads() == -1)
+    if (config::ConfigManager::getConfig<config::ServerConfig>()->getUsedThreads() == -1)
     {
         usedThreads = std::thread::hardware_concurrency();
     }

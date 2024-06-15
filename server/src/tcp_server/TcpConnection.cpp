@@ -3,8 +3,8 @@
 //
 
 #include "TcpConnection.hpp"
-#include <iostream>
 #include "../utils/Logger.hpp"
+#include <iostream>
 #include <rsa.h>
 
 void server::TCPConnection::start()
@@ -16,23 +16,23 @@ void server::TCPConnection::handleRead()
 {
     request = {};
     auto self(shared_from_this());
-    boost::beast::http::async_read(stream, buffer,request, strand.wrap([this, self](const boost::system::error_code &errorCode, std::size_t bytesTransferred) {
+    boost::beast::http::async_read(stream, buffer, request, strand.wrap([this, self](const boost::system::error_code &errorCode, std::size_t bytesTransferred) {
         if (errorCode)
         {
             BOOST_LOG_TRIVIAL(error) << errorCode.message();
         }
         else
         {
-            handleWrite(errorCode, bytesTransferred, router->handleRequest(self,request));
+            handleWrite(errorCode, bytesTransferred, router->handleRequest(self, request));
         }
     }));
 }
 
-void server::TCPConnection::handleWrite([[maybe_unused]] const  boost::system::error_code & error, [[maybe_unused]] std::size_t bytesTransferred, std::shared_ptr<rest::Response> response)
+void server::TCPConnection::handleWrite([[maybe_unused]] const boost::system::error_code &error, [[maybe_unused]] std::size_t bytesTransferred, std::shared_ptr<rest::Response> response)
 {
     auto self(shared_from_this());
-    boost::beast::http::async_write(stream, *response, strand.wrap([this, self,response](const boost::system::error_code &errorCode, [[maybe_unused]]std::size_t bytesTransferred) {
-        if(errorCode)
+    boost::beast::http::async_write(stream, *response, strand.wrap([this, self, response](const boost::system::error_code &errorCode, [[maybe_unused]] std::size_t bytesTransferred) {
+        if (errorCode)
         {
             BOOST_LOG_TRIVIAL(error) << errorCode.message();
         }
@@ -43,9 +43,9 @@ void server::TCPConnection::handleWrite([[maybe_unused]] const  boost::system::e
     }));
 }
 
-server::TCPConnection::TCPConnection(boost::asio::ip::tcp::socket &&socket, const std::shared_ptr<rest::Router> &newRouter,boost::asio::io_context::strand &newStrand) : router(newRouter), stream(std::move(socket)),strand(newStrand)
+server::TCPConnection::TCPConnection(boost::asio::ip::tcp::socket &&socket, const std::shared_ptr<rest::Router> &newRouter, boost::asio::io_context::strand &newStrand) : router(newRouter), stream(std::move(socket)), strand(newStrand)
 {
-    parameters.GenerateRandomWithKeySize(randomNumberGenerator,RSA_KEY_LENGTH);
+    parameters.GenerateRandomWithKeySize(randomNumberGenerator, RSA_KEY_LENGTH);
     publicKey = std::make_shared<CryptoPP::RSA::PublicKey>(parameters);
     privateKey = std::make_shared<CryptoPP::RSA::PrivateKey>(parameters);
 }
@@ -61,15 +61,15 @@ void server::TCPConnection::sendRSAPublicKey()
     CryptoPP::ByteQueue byteQueue;
     publicKey->Save(byteQueue);
 
-    std::array<std::byte,RSA_KEY_LENGTH> bytes{};
-    for(int i = 0;i < byteQueue.CurrentSize(); i++)
+    std::array<std::byte, RSA_KEY_LENGTH> bytes{};
+    for (int i = 0; i < byteQueue.CurrentSize(); i++)
     {
         bytes[i] = static_cast<std::byte>(byteQueue[i]);
     }
 
     auto self(shared_from_this());
-    boost::asio::async_write(stream.socket(),boost::asio::buffer(bytes,byteQueue.CurrentSize()),strand.wrap([this, self](const boost::system::error_code &errorCode, [[maybe_unused]] std::size_t bytesTransferred) {
-        if(errorCode)
+    boost::asio::async_write(stream.socket(), boost::asio::buffer(bytes, byteQueue.CurrentSize()), strand.wrap([this, self](const boost::system::error_code &errorCode, [[maybe_unused]] std::size_t bytesTransferred) {
+        if (errorCode)
         {
             BOOST_LOG_TRIVIAL(error) << errorCode.message();
         }
@@ -97,12 +97,12 @@ bool server::TCPConnection::decrypt(const std::string &encryptedData, std::strin
 
     try
     {
-        auto stringSink =  new CryptoPP::StringSink(decryptedData);
+        auto stringSink = new CryptoPP::StringSink(decryptedData);
         auto decryptorFilter = new CryptoPP::PK_DecryptorFilter(randomNumberGenerator, decryptor, stringSink);
-        CryptoPP::StringSource ss2(encryptedData, true,decryptorFilter);
+        CryptoPP::StringSource ss2(encryptedData, true, decryptorFilter);
         isSuccessfulDecrypted = true;
     }
-    catch(const CryptoPP::Exception &ex)
+    catch (const CryptoPP::Exception &ex)
     {
         BOOST_LOG_TRIVIAL(error) << ex.what() << "\n";
     }

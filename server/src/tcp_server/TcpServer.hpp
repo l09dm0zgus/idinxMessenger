@@ -3,13 +3,13 @@
 //
 #pragma once
 
+#include "../http/Router.hpp"
 #include <boost/asio.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/system.hpp>
 #include <boost/thread.hpp>
 #include <memory>
 #include <vector>
-#include "../http/Router.hpp"
 
 namespace server
 {
@@ -19,15 +19,16 @@ namespace server
     public:
         explicit TCPServer();
         void run();
-        template<class T, typename ...Args>
+        template<class T, typename... Args>
         void addRoute(const std::string_view &route, Args &&...args)
         {
-            router->addRoute<T,Args...>(route, std::forward<Args...>(args...));
+            router->addRoute<T, Args...>(route, std::forward<Args...>(args...));
         }
+
     private:
         void doAsyncStop();
         void startAccept();
-        std::unordered_map<long long,std::shared_ptr<TCPConnection>> connections;
+        std::unordered_map<long long, std::shared_ptr<TCPConnection>> connections;
         long long numberOfConnections{0};
         boost::asio::io_context ioContext;
         boost::asio::ip::tcp::acceptor serverAcceptor;

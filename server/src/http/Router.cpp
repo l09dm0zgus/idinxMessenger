@@ -42,7 +42,7 @@ std::shared_ptr<rest::Response> rest::Router::handleRequest(const server::Connec
     auto target = request.target();
     if (routes.count(target))
     {
-        return routes[target]->handleRequest(clientConnection,request);
+        return routes[target]->handleRequest(clientConnection, request);
     }
     else
     {

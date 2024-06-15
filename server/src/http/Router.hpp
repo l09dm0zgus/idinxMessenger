@@ -19,7 +19,7 @@ namespace rest
     public:
         std::shared_ptr<Response> handleRequest(const server::Connection &clientConnection, const Request &request);
 
-        template<class T, typename ...Args>
+        template<class T, typename... Args>
         void addRoute(const std::string_view &route, Args &&...args)
         {
             routes[route] = std::make_shared<T>(std::forward<Args>(args)...);
