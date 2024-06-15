@@ -16,7 +16,7 @@ namespace server
     class TCPConnection : public std::enable_shared_from_this<TCPConnection>
     {
     public:
-        explicit TCPConnection(boost::asio::ip::tcp::socket &&socket, const std::shared_ptr<rest::Router> &newRouter);
+        explicit TCPConnection(boost::asio::ip::tcp::socket &&socket, const std::shared_ptr<rest::Router> &newRouter,boost::asio::io_context::strand &newStrand);
 
         bool decrypt(const std::string& encryptedData, std::string& decryptedData);
         void setID(long long newID);
@@ -33,9 +33,10 @@ namespace server
         CryptoPP::InvertibleRSAFunction parameters;
         std::shared_ptr<CryptoPP::RSA::PublicKey> publicKey;
         std::shared_ptr<CryptoPP::RSA::PrivateKey> privateKey;
+        boost::asio::io_context::strand &strand;
         long long id{0};
 
-        void handleWrite([[maybe_unused]] const  boost::system::error_code & error, [[maybe_unused]] std::size_t bytesTransferred, const rest::Response &response);
+        void handleWrite([[maybe_unused]] const  boost::system::error_code & error, [[maybe_unused]] std::size_t bytesTransferred, std::shared_ptr<rest::Response> response);
         void handleRead();
         void sendRSAPublicKey();
 
