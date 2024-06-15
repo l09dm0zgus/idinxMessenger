@@ -5,16 +5,19 @@ add_executable(${CLIENT_TARGET_NAME})
 target_sources(${CLIENT_TARGET_NAME} PUBLIC main.cpp
         application/Application.cpp
         application/Application.hpp
-        application/Connection.cpp
-        application/Connection.hpp
-        http/HttpRequest.hpp)
+        auth/Connection.cpp
+        auth/Connection.hpp
+        http/HttpRequest.hpp
+        auth/Registration.cpp
+        auth/Registration.hpp)
 
 target_link_libraries(${CLIENT_TARGET_NAME}
         cryptopp::cryptopp
         SQLiteCpp
         sqlite3
         Boost::asio
-        Boost::beast)
+        Boost::beast
+        Boost::json)
 
 
 if(WIN32)
