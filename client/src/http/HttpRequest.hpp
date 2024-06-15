@@ -68,6 +68,7 @@ namespace rest
             getBeastRequestObject()->method(boost::beast::http::verb::post);
             getBeastRequestObject()->set(boost::beast::http::field::content_type, mimeType);
             getBeastRequestObject()->body() = bodyData;
+            getBeastRequestObject()->prepare_payload();
         }
     };
 
@@ -80,6 +81,7 @@ namespace rest
             getBeastRequestObject()->method(boost::beast::http::verb::patch);
             getBeastRequestObject()->set(boost::beast::http::field::content_type, mimeType);
             getBeastRequestObject()->body() = bodyData;
+            getBeastRequestObject()->prepare_payload();
         }
     };
 
