@@ -3,9 +3,13 @@
 //
 
 #pragma once
-#include "Connection.hpp"
 #include <iostream>
+#include <memory>
 
+namespace auth
+{
+    class Connection;
+}
 namespace app
 {
     class Application
@@ -14,8 +18,13 @@ namespace app
         std::string getInput(const std::string_view &description);
         void showHelp();
         void connectToServer();
+        void registerNewAccount();
+        void signInAccount();
+        void authenticateUser();
+        void addLoginAndPasswordToDatabase(const std::string &login, const std::string password);
         bool isRunning = true;
-        std::unique_ptr<Connection> connection;
+        bool isAuthenticatedUser = false;
+        std::shared_ptr<auth::Connection> connection;
 
     public:
         Application();
