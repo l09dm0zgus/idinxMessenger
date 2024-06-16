@@ -25,6 +25,8 @@ namespace rest
         FAILED_TO_PARSE_BODY,
         USER_WITH_LOGIN_EXIST,
         USER_WITH_EMAIL_EXIST,
+        WRONG_USER_LOGIN,
+        WRONG_USER_PASSWORD,
         DATABASE_NOT_RESPONDING,
         OK = 1,
     };

@@ -8,7 +8,7 @@ std::string rest::IRoute::createResponseBody(const std::string_view &what, Statu
     json::object obj;
     std::stringstream ss;
     obj["response"] = {
-            {"code", std::to_string(static_cast<int>(code))},
+            {"code", static_cast<int>(code)},
             {"what", what}};
     ss << obj;
     return ss.str();
