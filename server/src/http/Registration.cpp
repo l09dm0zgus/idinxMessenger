@@ -57,6 +57,7 @@ rest::Registration::UserRegistrationData rest::Registration::parseBody(const ser
     try
     {
         auto values = json::parse(decryptedBody);
+        decryptedBody = "";
         userRegistrationData.email = values.at("user_data").at("email").as_string();
         userRegistrationData.login = values.at("user_data").at("login").as_string();
         userRegistrationData.password = values.at("user_data").at("password").as_string();
@@ -65,6 +66,7 @@ rest::Registration::UserRegistrationData rest::Registration::parseBody(const ser
     catch (std::exception &ex)
     {
         userRegistrationData.id = -1;
+        BOOST_LOG_TRIVIAL(error) << ex.what();
         response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::FAILED_TO_PARSE_BODY, request);
     }
     return userRegistrationData;
