@@ -4,6 +4,7 @@
 #include "TcpServer.hpp"
 #include "../config/ConfigManager.hpp"
 #include "../config/ServerConfig.hpp"
+#include "../http/Login.hpp"
 #include "../http/Registration.hpp"
 #include "../utils/Logger.hpp"
 #include "TcpConnection.hpp"
@@ -54,6 +55,7 @@ server::TCPServer::TCPServer() : serverAcceptor(ioContext), signals(ioContext)
 
     router = std::make_shared<rest::Router>();
     router->addRoute<rest::Registration>("/registration");
+    router->addRoute<rest::Login>("/login", connections);
 
     doAsyncStop();
     startAccept();
@@ -71,10 +73,13 @@ void server::TCPServer::startAccept()
             std::cout << "Connected user\n";
             auto connection = std::make_shared<TCPConnection>(std::move(socket), router, *strand);
             connection->start();
-            connection->setID(numberOfConnections);
-
             numberOfConnections++;
-            connections[numberOfConnections] = connection;
+
+            CryptoPP::AutoSeededRandomPool rng;
+            CryptoPP::Integer id(rng, 0, std::numeric_limits<long>::max());
+
+            connection->setID(id.ConvertToLong());
+            connections[id.ConvertToLong()] = connection;
         }
         startAccept();
     });
