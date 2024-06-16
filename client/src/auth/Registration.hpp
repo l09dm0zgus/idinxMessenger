@@ -3,9 +3,9 @@
 //
 
 #pragma once
+#include <boost/json.hpp>
 #include <iostream>
 #include <memory>
-
 namespace auth
 {
     class Connection;
@@ -24,6 +24,6 @@ namespace auth
 
     public:
         explicit Registration(const std::shared_ptr<Connection> &newConnection);
-        std::string registerNewAccount(const AccountData &accountData);
+        boost::json::value registerNewAccount(const AccountData &accountData);
     };
 }// namespace auth

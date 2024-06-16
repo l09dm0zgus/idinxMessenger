@@ -4,19 +4,18 @@
 
 #include "Registration.hpp"
 #include "Connection.hpp"
-#include "boost/json.hpp"
 #include <sstream>
 
 auth::Registration::Registration(const std::shared_ptr<Connection> &newConnection) : connection(newConnection)
 {
 }
 
-std::string auth::Registration::registerNewAccount(const auth::Registration::AccountData &accountData)
+boost::json::value auth::Registration::registerNewAccount(const auth::Registration::AccountData &accountData)
 {
     auto serializedAccountData = serializeAccountData(accountData);
     connection->sendRequest<rest::Method::POST>(serializedAccountData, "/registration", connection->getIP(), "application/json");
     auto response = connection->readResponse();
-    return boost::beast::buffers_to_string(response.body().data());
+    return boost::json::parse(boost::beast::buffers_to_string(response.body().data()));
 }
 
 std::string auth::Registration::serializeAccountData(const auth::Registration::AccountData &accountData)
@@ -28,6 +27,6 @@ std::string auth::Registration::serializeAccountData(const auth::Registration::A
                     {"login", accountData.login},
                     {"password", accountData.password}};
     std::stringstream ss;
-    ss << obj;
+    ss << obj << '\n';
     return ss.str();
 }
