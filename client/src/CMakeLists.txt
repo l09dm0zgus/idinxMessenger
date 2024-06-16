@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(idinxMessenger)
 
-add_executable(${CLIENT_TARGET_NAME})
+add_executable(${CLIENT_TARGET_NAME}
+       )
 target_sources(${CLIENT_TARGET_NAME} PUBLIC main.cpp
         application/Application.cpp
         application/Application.hpp
@@ -9,7 +10,11 @@ target_sources(${CLIENT_TARGET_NAME} PUBLIC main.cpp
         auth/Connection.hpp
         http/HttpRequest.hpp
         auth/Registration.cpp
-        auth/Registration.hpp)
+        auth/Registration.hpp
+        database/SQLiteDatabase.cpp
+        database/SQLiteDatabase.hpp
+        auth/Login.cpp
+        auth/Login.hpp)
 
 target_link_libraries(${CLIENT_TARGET_NAME}
         cryptopp::cryptopp
