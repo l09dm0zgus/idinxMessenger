@@ -38,7 +38,7 @@ std::shared_ptr<rest::Response> rest::Login::handleRequest(const server::Connect
         return IRoute::createResponse(boost::beast::http::status::ok, "Wrong user login!", StatusCodes::WRONG_USER_LOGIN, -1, request);
     }
 
-    auto isPasswordExist = checkIfLoginExistsInDatabase(userData.first, response, request);
+    auto isPasswordExist = checkIfPasswordExistsInDatabase(userData.first, userData.second, response, request);
 
     if (!response->body().empty())
     {
@@ -63,7 +63,6 @@ std::shared_ptr<rest::Response> rest::Login::handleRequest(const server::Connect
 bool rest::Login::decryptBody(const server::Connection &clientConnection, const rest::Request &request)
 {
     return clientConnection->decrypt(request.body(), decryptedBody);
-    ;
 }
 
 std::pair<std::string, std::string> rest::Login::parseBody(const server::Connection &clientConnection, std::shared_ptr<Response> &response, const rest::Request &request)
