@@ -56,7 +56,9 @@ namespace utils
     static bool checkIfPasswordsEqual(const std::string &enteredPassword, const std::string &passwordWithSaltFromDatabase)
     {
         auto salt = getSalt(passwordWithSaltFromDatabase);
-        auto hashedEnteredPassword = hashPassword(reinterpret_cast<const CryptoPP::byte *>(salt.c_str()), enteredPassword);
+        std::string saltDecoded;
+        CryptoPP::StringSource ss(salt, true,new CryptoPP::HexDecoder(new CryptoPP::StringSink(saltDecoded)));
+        auto hashedEnteredPassword = hashPassword(reinterpret_cast<const CryptoPP::byte *>(saltDecoded.c_str()), enteredPassword);
         return hashedEnteredPassword == passwordWithSaltFromDatabase;
     }
 }// namespace utils
