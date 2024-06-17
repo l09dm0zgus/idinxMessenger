@@ -4,8 +4,8 @@
 
 #include "Application.hpp"
 #include "../auth/Connection.hpp"
-#include "../auth/Registration.hpp"
 #include "../auth/Login.hpp"
+#include "../auth/Registration.hpp"
 #include "../database/SQLiteDatabase.hpp"
 
 std::string app::Application::getInput(const std::string_view &description)
@@ -54,7 +54,6 @@ void app::Application::showHelp()
 
 app::Application::Application()
 {
-
 }
 
 void app::Application::connectToServer()
@@ -88,9 +87,10 @@ void app::Application::registerNewAccount()
         auth::Registration reg(connection);
         auto result = reg.registerNewAccount(accountData);
         auto code = result.at("response").at("code").as_int64();
-        if(code == 1)
+        if (code == 1)
         {
-            addLoginAndPasswordToDatabase(accountData.login,accountData.password);
+            addLoginAndPasswordToDatabase(accountData.login, accountData.password);
+            userID = result.at("response").at("session_id").as_int64();
             std::cout << "Successful registration:)\n";
             isContinueRegistration = false;
             isAuthenticatedUser = true;
@@ -101,15 +101,13 @@ void app::Application::registerNewAccount()
             std::cout << "Do you want try again register?( 1 - no, anything else - yes: ";
             int answer = 0;
             std::cin >> answer;
-            if(answer == 1)
+            if (answer == 1)
             {
                 isContinueRegistration = false;
                 isRunning = false;
             }
         }
-
     }
-
 }
 
 void app::Application::authenticateUser()
@@ -118,13 +116,14 @@ void app::Application::authenticateUser()
     try
     {
         auto query = database.query("SELECT * FROM users;");
-        if(query.executeStep())
+        if (query.executeStep())
         {
             auth::Login log(connection);
-            auto result = log.signInAccount(query.getColumn("login"),query.getColumn("password"));
+            auto result = log.signInAccount(query.getColumn("login"), query.getColumn("password"));
             auto code = result.at("response").at("code").as_int64();
-            if(code == 1)
+            if (code == 1)
             {
+                userID = result.at("response").at("session_id").as_int64();
                 std::cout << "Successful sign-up:)\n";
                 isAuthenticatedUser = true;
             }
@@ -139,26 +138,25 @@ void app::Application::authenticateUser()
             std::cout << "Do you want create account or login?\n";
             std::cout << "1 - login,2 - create\n";
             int option = 0;
-            while(option != 1 || option != 2)
+            while (option != 1 || option != 2)
             {
                 std::cout << "Your answer:";
                 std::cin >> option;
 
-                if(option == 1)
+                if (option == 1)
                 {
                     signInAccount();
                     break;
                 }
-                else if(option == 2)
+                else if (option == 2)
                 {
                     registerNewAccount();
                     break;
                 }
             }
-
         }
     }
-    catch(SQLite::Exception &ex)
+    catch (SQLite::Exception &ex)
     {
         std::cout << "Error :" << ex.what() << "\n";
     }
@@ -167,7 +165,7 @@ void app::Application::authenticateUser()
 void app::Application::signInAccount()
 {
     bool isContinueLogin = true;
-    std::string login,password;
+    std::string login, password;
     while (isContinueLogin)
     {
         std::cout << "Login: ";
@@ -177,11 +175,12 @@ void app::Application::signInAccount()
         std::cin >> password;
 
         auth::Login log(connection);
-        auto result = log.signInAccount(login,password);
+        auto result = log.signInAccount(login, password);
         auto code = result.at("response").at("code").as_int64();
-        if(code == 1)
+        if (code == 1)
         {
-            addLoginAndPasswordToDatabase(login,password);
+            addLoginAndPasswordToDatabase(login, password);
+            userID = result.at("response").at("session_id").as_int64();
             std::cout << "Successful sign-up:)\n";
             isContinueLogin = false;
             isAuthenticatedUser = true;
@@ -192,7 +191,7 @@ void app::Application::signInAccount()
             std::cout << "Do you want try again sign-up?( 1 - no, anything else - yes: ";
             int answer = 0;
             std::cin >> answer;
-            if(answer == 1)
+            if (answer == 1)
             {
                 isContinueLogin = false;
                 isRunning = false;
@@ -207,14 +206,13 @@ void app::Application::addLoginAndPasswordToDatabase(const std::string &login, c
     try
     {
         auto query = database.query("INSERT INTO users VALUES (1,?,?)");
-        query.bind(1,login);
-        query.bind(2,password);
+        query.bind(1, login);
+        query.bind(2, password);
         query.exec();
     }
-    catch(SQLite::Exception &ex)
+    catch (SQLite::Exception &ex)
     {
         std::cout << "Error: " << ex.what() << "\n";
         exit(-1488);
     }
-
 }

@@ -25,6 +25,7 @@ namespace app
         bool isRunning = true;
         bool isAuthenticatedUser = false;
         std::shared_ptr<auth::Connection> connection;
+        long long userID;
 
     public:
         Application();

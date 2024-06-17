@@ -16,7 +16,7 @@ std::shared_ptr<rest::Response> rest::Login::handleRequest(const server::Connect
 {
     if (!decryptBody(clientConnection, request))
     {
-        return IRoute::createResponse(boost::beast::http::status::bad_request, "Failed to decrypt request body!", StatusCodes::FAILED_TO_DECRYPT_BODY, request);
+        return IRoute::createResponse(boost::beast::http::status::bad_request, "Failed to decrypt request body!", StatusCodes::FAILED_TO_DECRYPT_BODY, -1, request);
     }
 
     std::shared_ptr<Response> response = std::make_shared<Response>();
@@ -35,7 +35,7 @@ std::shared_ptr<rest::Response> rest::Login::handleRequest(const server::Connect
 
     if (!isLoginExist)
     {
-        return IRoute::createResponse(boost::beast::http::status::ok, "Wrong user login!", StatusCodes::WRONG_USER_LOGIN, request);
+        return IRoute::createResponse(boost::beast::http::status::ok, "Wrong user login!", StatusCodes::WRONG_USER_LOGIN, -1, request);
     }
 
     auto isPasswordExist = checkIfLoginExistsInDatabase(userData.first, response, request);
@@ -47,12 +47,12 @@ std::shared_ptr<rest::Response> rest::Login::handleRequest(const server::Connect
 
     if (!isPasswordExist)
     {
-        return IRoute::createResponse(boost::beast::http::status::ok, "Wrong user password!", StatusCodes::WRONG_USER_PASSWORD, request);
+        return IRoute::createResponse(boost::beast::http::status::ok, "Wrong user password!", StatusCodes::WRONG_USER_PASSWORD, -1, request);
     }
 
     if (isPasswordExist && isLoginExist)
     {
-        response = IRoute::createResponse(boost::beast::http::status::ok, "Login successful.", StatusCodes::OK, request);
+        response = IRoute::createResponse(boost::beast::http::status::ok, "Login successful.", StatusCodes::OK, clientConnection->getID(), request);
         auto it = connections.find(clientConnection->getID());
         connections[userID] = clientConnection;
         connections.erase(it);
@@ -79,7 +79,7 @@ std::pair<std::string, std::string> rest::Login::parseBody(const server::Connect
     catch (std::exception &ex)
     {
         BOOST_LOG_TRIVIAL(error) << ex.what();
-        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::FAILED_TO_PARSE_BODY, request);
+        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::FAILED_TO_PARSE_BODY, -1, request);
         return {"", ""};
     }
 }
@@ -96,7 +96,7 @@ bool rest::Login::checkIfLoginExistsInDatabase(const std::string &login, std::sh
     catch (const std::exception &ex)
     {
         BOOST_LOG_TRIVIAL(error) << ex.what();
-        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, request);
+        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, -1, request);
     }
 
     return !result.empty();
@@ -114,7 +114,7 @@ bool rest::Login::checkIfPasswordExistsInDatabase(const std::string &login, cons
     catch (const std::exception &ex)
     {
         BOOST_LOG_TRIVIAL(error) << ex.what();
-        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, request);
+        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, -1, request);
         return false;
     }
 

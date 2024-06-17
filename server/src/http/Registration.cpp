@@ -13,7 +13,7 @@ std::shared_ptr<rest::Response> rest::Registration::handleRequest(const server::
 
     if (!decryptBody(clientConnection, request))
     {
-        return IRoute::createResponse(boost::beast::http::status::bad_request, "Failed to decrypt request body!", StatusCodes::FAILED_TO_DECRYPT_BODY, request);
+        return IRoute::createResponse(boost::beast::http::status::bad_request, "Failed to decrypt request body!", StatusCodes::FAILED_TO_DECRYPT_BODY, -1, request);
     }
 
     std::shared_ptr<Response> response = std::make_shared<Response>();
@@ -25,7 +25,7 @@ std::shared_ptr<rest::Response> rest::Registration::handleRequest(const server::
 
     if (checkIfEmailExistsInDatabase(userData.email, response, request))
     {
-        return IRoute::createResponse(boost::beast::http::status::ok, "User with this login exist!", StatusCodes::USER_WITH_EMAIL_EXIST, request);
+        return IRoute::createResponse(boost::beast::http::status::ok, "User with this login exist!", StatusCodes::USER_WITH_EMAIL_EXIST, -1, request);
     }
 
     if (!response->body().empty())
@@ -35,7 +35,7 @@ std::shared_ptr<rest::Response> rest::Registration::handleRequest(const server::
 
     if (checkIfLoginExistsInDatabase(userData.login, response, request))
     {
-        return IRoute::createResponse(boost::beast::http::status::ok, "User with this email exist!", StatusCodes::USER_WITH_LOGIN_EXIST, request);
+        return IRoute::createResponse(boost::beast::http::status::ok, "User with this email exist!", StatusCodes::USER_WITH_LOGIN_EXIST, -1, request);
     }
 
     if (!response->body().empty())
@@ -67,7 +67,7 @@ rest::Registration::UserRegistrationData rest::Registration::parseBody(const ser
     {
         userRegistrationData.id = -1;
         BOOST_LOG_TRIVIAL(error) << ex.what();
-        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::FAILED_TO_PARSE_BODY, request);
+        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::FAILED_TO_PARSE_BODY, -1, request);
     }
     return userRegistrationData;
 }
@@ -84,7 +84,7 @@ bool rest::Registration::checkIfLoginExistsInDatabase(const std::string &login, 
     catch (const std::exception &ex)
     {
         BOOST_LOG_TRIVIAL(error) << ex.what();
-        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, request);
+        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, -1, request);
     }
 
     return !result.empty();
@@ -102,7 +102,7 @@ bool rest::Registration::checkIfEmailExistsInDatabase(const std::string &email, 
     catch (const std::exception &ex)
     {
         BOOST_LOG_TRIVIAL(error) << ex.what();
-        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, request);
+        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, -1, request);
     }
 
     return !result.empty();
@@ -120,10 +120,10 @@ void rest::Registration::writeRegistrationDataToDatabase(const rest::Registratio
     catch (const std::exception &ex)
     {
         BOOST_LOG_TRIVIAL(error) << ex.what();
-        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, request);
+        response = IRoute::createResponse(boost::beast::http::status::bad_request, ex.what(), StatusCodes::DATABASE_NOT_RESPONDING, -1, request);
     }
     if (response->body().empty())
     {
-        response = IRoute::createResponse(boost::beast::http::status::ok, "Registration successful.", StatusCodes::OK, request);
+        response = IRoute::createResponse(boost::beast::http::status::ok, "Registration successful.", StatusCodes::OK, userRegistrationData.id, request);
     }
 }

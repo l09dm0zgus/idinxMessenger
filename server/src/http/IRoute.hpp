@@ -34,10 +34,10 @@ namespace rest
     class IRoute
     {
     private:
-        static std::string createResponseBody(const std::string_view &what, StatusCodes code);
+        static std::string createResponseBody(const std::string_view &what, StatusCodes code, long long sessionID);
 
     protected:
-        static std::shared_ptr<Response> createResponse(boost::beast::http::status status, const std::string_view &what, StatusCodes statusCodes, const rest::Request &request);
+        static std::shared_ptr<Response> createResponse(boost::beast::http::status status, const std::string_view &what, StatusCodes statusCodes, long long sessionID, const rest::Request &request);
 
     public:
         virtual ~IRoute() = default;
