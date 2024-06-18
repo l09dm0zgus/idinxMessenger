@@ -3,11 +3,11 @@
 //
 
 #pragma once
-#include <osrng.h>
-#include <rsa.h>
+#include <boost/json.hpp>
 #include <hex.h>
 #include <memory>
-#include <boost/json.hpp>
+#include <osrng.h>
+#include <rsa.h>
 
 namespace auth
 {
@@ -26,13 +26,13 @@ namespace messaging
         std::shared_ptr<auth::Connection> connection;
         void savePrivateKeyToDatabase(const std::string &receiverLogin);
         void generateKeys();
-        std::string serializeKeyRequestData(long long senderID,const std::string &receiverLogin);
+        std::string serializeKeyRequestData(long long senderID, const std::string &receiverLogin);
 
 
     public:
         static constexpr int RSA_KEY_LENGTH = 2048;
         explicit PublicKeyExchangeRequest(const std::shared_ptr<auth::Connection> &newConnection);
-        boost::json::value createRequest(long long senderID,const std::string &receiverLogin);
+        boost::json::value createRequest(long long senderID, const std::string &receiverLogin);
         std::shared_ptr<CryptoPP::RSA::PublicKey> getPublicKey();
         std::shared_ptr<CryptoPP::RSA::PrivateKey> getPrivateKey();
 
@@ -43,7 +43,7 @@ namespace messaging
             std::vector<CryptoPP::byte> bytes;
             publicKey->Save(queue);
 
-            for(int i = 0; i < queue.CurrentSize();i++)
+            for (int i = 0; i < queue.CurrentSize(); i++)
             {
                 bytes.push_back(queue[i]);
             }
@@ -51,7 +51,7 @@ namespace messaging
 
             std::string publicKeyString;
             CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(publicKeyString));
-            encoder.Put(bytes.data(),bytes.size());
+            encoder.Put(bytes.data(), bytes.size());
             encoder.MessageEnd();
             return publicKeyString;
         }
@@ -60,12 +60,12 @@ namespace messaging
         static std::shared_ptr<KeyType> decodeRSAKeyFromString(const std::string &rsaKeyString)
         {
             std::vector<CryptoPP::byte> bytes;
-            CryptoPP::StringSource ss(rsaKeyString, true,new CryptoPP::HexDecoder(new CryptoPP::VectorSink(bytes)));
+            CryptoPP::StringSource ss(rsaKeyString, true, new CryptoPP::HexDecoder(new CryptoPP::VectorSink(bytes)));
 
             auto publicKey = std::make_shared<KeyType>();
 
             CryptoPP::ByteQueue queue;
-            for (auto byte : bytes)
+            for (auto byte: bytes)
             {
                 queue.Put(byte);
             }
@@ -75,5 +75,4 @@ namespace messaging
             return publicKey;
         }
     };
-}
-
+}// namespace messaging

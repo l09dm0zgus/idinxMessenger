@@ -3,9 +3,9 @@
 //
 
 #include "PublicKeyExchangeRequest.hpp"
-#include "../http/HttpRequest.hpp"
 #include "../auth/Connection.hpp"
 #include "../database/SQLiteDatabase.hpp"
+#include "../http/HttpRequest.hpp"
 #include <boost/beast.hpp>
 #include <sstream>
 
@@ -36,10 +36,9 @@ std::string messaging::PublicKeyExchangeRequest::serializeKeyRequestData(long lo
     boost::json::object obj;
     obj["request_key"] =
             {
-                    {"sender_id",senderID},
-                    {"receiver_login",receiverLogin},
-                    {"public_key", rsaKeyToString(publicKey)}
-            };
+                    {"sender_id", senderID},
+                    {"receiver_login", receiverLogin},
+                    {"public_key", rsaKeyToString(publicKey)}};
     std::stringstream ss;
     ss << obj << "\n";
     return ss.str();
@@ -48,7 +47,7 @@ std::string messaging::PublicKeyExchangeRequest::serializeKeyRequestData(long lo
 boost::json::value messaging::PublicKeyExchangeRequest::createRequest(long long int senderID, const std::string &receiverLogin)
 {
     savePrivateKeyToDatabase(receiverLogin);
-    auto serializedRequestData = serializeKeyRequestData(senderID,receiverLogin);
+    auto serializedRequestData = serializeKeyRequestData(senderID, receiverLogin);
     connection->disableEncryptionForNextRequest();
     connection->sendRequest<rest::Method::POST>(serializedRequestData, "/keyExchangeRequest", connection->getIP(), "application/json");
     auto response = connection->readResponse();
@@ -61,7 +60,7 @@ void messaging::PublicKeyExchangeRequest::savePrivateKeyToDatabase(const std::st
     try
     {
         auto deleteQuery = database.query("DELETE FROM key_exchange_requests WHERE receiver_login=?");
-        deleteQuery.bind(1,receiverLogin);
+        deleteQuery.bind(1, receiverLogin);
         deleteQuery.exec();
 
         auto insertQuery = database.query("INSERT INTO key_exchange_requests (receiver_login,private_key) VALUES (?,?)");
