@@ -52,7 +52,7 @@ std::shared_ptr<rest::Response> rest::Login::handleRequest(const server::Connect
 
     if (isPasswordExist && isLoginExist)
     {
-        response = IRoute::createResponse(boost::beast::http::status::ok, "Login successful.", StatusCodes::OK, clientConnection->getID(), request);
+        response = IRoute::createResponse(boost::beast::http::status::ok, "Login successful.", StatusCodes::OK, userID, request);
         auto it = connections.find(clientConnection->getID());
         connections[userID] = clientConnection;
         connections.erase(it);
