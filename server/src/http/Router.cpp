@@ -4,6 +4,7 @@
 
 #include "Router.hpp"
 #include <boost/beast/http.hpp>
+#include <boost/url.hpp>
 #include <iostream>
 
 
@@ -40,8 +41,13 @@ std::shared_ptr<rest::Response> rest::Router::handleRequest(const server::Connec
     }
 
     auto target = request.target();
-    if (routes.count(target))
+    auto result = boost::urls::parse_origin_form(target);
+    auto urlView = result.value();
+    auto path = urlView.path();
+
+    if (routes.count(path))
     {
+        routes[target]->setURL(target);
         return routes[target]->handleRequest(clientConnection, request);
     }
     else

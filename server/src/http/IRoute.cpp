@@ -25,3 +25,12 @@ std::shared_ptr<rest::Response> rest::IRoute::createResponse(boost::beast::http:
     response->prepare_payload();
     return response;
 }
+
+void rest::IRoute::setURL(const std::string_view &newURL)
+{
+    url = newURL;
+}
+std::string_view rest::IRoute::getURL()
+{
+    return url;
+}

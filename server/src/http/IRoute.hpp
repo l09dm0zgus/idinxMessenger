@@ -28,18 +28,30 @@ namespace rest
         WRONG_USER_LOGIN,
         WRONG_USER_PASSWORD,
         DATABASE_NOT_RESPONDING,
+        WRONG_USER_ID,
+        INCORRECT_URL_QUERY,
+        MESSAGING_WITH_YOURSELF,
         OK = 1,
+    };
+
+    enum class MessageType
+    {
+        STANDARD_MESSAGE = 0,
+        EXCHANGE_KEYS_MESSAGE
     };
 
     class IRoute
     {
     private:
         static std::string createResponseBody(const std::string_view &what, StatusCodes code, long long sessionID);
+        std::string_view url;
 
     protected:
         static std::shared_ptr<Response> createResponse(boost::beast::http::status status, const std::string_view &what, StatusCodes statusCodes, long long sessionID, const rest::Request &request);
+        std::string_view getURL();
 
     public:
+        void setURL(const std::string_view &newURL);
         virtual ~IRoute() = default;
         virtual std::shared_ptr<Response> handleRequest(const server::Connection &clientConnection, const Request &request) = 0;
     };
