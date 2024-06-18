@@ -10,6 +10,7 @@ void db::SQLiteDatabase::createDatabase()
     {
         database = std::make_shared<SQLite::Database>(pathToDatabaseFile, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
         database->exec("CREATE TABLE IF NOT EXISTS \"users\" ( \"id\" INTEGER UNIQUE,\"login\" TEXT,\"password\"	TEXT,PRIMARY KEY(\"id\" AUTOINCREMENT));");
+        database->exec("CREATE TABLE IF NOT EXISTS \"key_exchange_requests\" (\n\t\"id\"\tINTEGER UNIQUE,\n\t\"receiver_login\"\tTEXT,\n\t\"private_key\"\tTEXT,\"receiver_public_key\"\tTEXT,\n\tPRIMARY KEY(\"id\" AUTOINCREMENT));");
     }
     catch (SQLite::Exception &ex)
     {
