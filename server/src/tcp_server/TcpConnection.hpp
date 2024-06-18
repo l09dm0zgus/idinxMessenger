@@ -22,6 +22,7 @@ namespace server
         void setID(long long newID);
         long long getID() const noexcept;
         void start();
+        void asyncSend(const std::string_view &data);
 
         static constexpr int RSA_KEY_LENGTH = 2048;
 

@@ -109,3 +109,18 @@ bool server::TCPConnection::decrypt(const std::string &encryptedData, std::strin
 
     return isSuccessfulDecrypted;
 }
+
+void server::TCPConnection::asyncSend(const std::string_view &data)
+{
+    auto self(shared_from_this());
+    boost::asio::async_write(stream.socket(), boost::asio::buffer(data, data.size()), strand.wrap([this, self](const boost::system::error_code &errorCode, [[maybe_unused]] std::size_t bytesTransferred) {
+        if (errorCode)
+        {
+            BOOST_LOG_TRIVIAL(error) << errorCode.message();
+        }
+        else
+        {
+            handleRead();
+        }
+    }));
+}
