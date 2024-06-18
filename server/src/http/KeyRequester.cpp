@@ -3,44 +3,44 @@
 //
 
 #include "KeyRequester.hpp"
-#include "../utils/Logger.hpp"
 #include "../database/Connection.hpp"
 #include "../tcp_server/TcpConnection.hpp"
+#include "../utils/Logger.hpp"
 
-rest::KeyRequester::KeyRequester(std::unordered_map<long long int, std::shared_ptr<server::TCPConnection>> &newConnections): connections(newConnections)
+rest::KeyRequester::KeyRequester(std::unordered_map<long long int, std::shared_ptr<server::TCPConnection>> &newConnections) : connections(newConnections)
 {
 }
 
 std::shared_ptr<rest::Response> rest::KeyRequester::handleRequest(const server::Connection &clientConnection, const rest::Request &request)
 {
     auto response = std::make_shared<Response>();
-    if(!parseBody(request.body(),response,request))
+    if (!parseBody(request.body(), response, request))
     {
         return response;
     }
 
-    if(!checkSenderIDInDatabase(response,request))
+    if (!checkSenderIDInDatabase(response, request))
     {
         return response;
     }
 
-    if(!checkReceiverLoginInDatabase(response,request))
+    if (!checkReceiverLoginInDatabase(response, request))
     {
         return response;
     }
 
-    if(checkIfSameUser(response,request))
+    if (checkIfSameUser(response, request))
     {
         return response;
     }
 
-    if(connections.count(receiverID))
+    if (connections.count(receiverID))
     {
-         connections[receiverID]->asyncSend(createKeyExchangeMessage());
+        connections[receiverID]->asyncSend(createKeyExchangeMessage());
     }
     else
     {
-        if(!writeMessageToDatabaseIfReceiverOffline(MessageType::EXCHANGE_KEYS_MESSAGE,response,request))
+        if (!writeMessageToDatabaseIfReceiverOffline(MessageType::EXCHANGE_KEYS_MESSAGE, response, request))
         {
             return response;
         }
@@ -49,10 +49,9 @@ std::shared_ptr<rest::Response> rest::KeyRequester::handleRequest(const server::
 
     response = IRoute::createResponse(boost::beast::http::status::ok, "Request for key exchange send successful!", StatusCodes::OK, senderID, request);
     return response;
-
 }
 
-bool rest::KeyRequester::parseBody(const std::string_view &body,std::shared_ptr<Response> &response,const Request &request)
+bool rest::KeyRequester::parseBody(const std::string_view &body, std::shared_ptr<Response> &response, const Request &request)
 {
     try
     {
@@ -72,7 +71,7 @@ bool rest::KeyRequester::parseBody(const std::string_view &body,std::shared_ptr<
     return false;
 }
 
-bool rest::KeyRequester::checkSenderIDInDatabase(std::shared_ptr<Response> &response,const Request &request)
+bool rest::KeyRequester::checkSenderIDInDatabase(std::shared_ptr<Response> &response, const Request &request)
 {
     pqxx::result result;
     try
@@ -88,7 +87,7 @@ bool rest::KeyRequester::checkSenderIDInDatabase(std::shared_ptr<Response> &resp
         return false;
     }
 
-    if(result.empty())
+    if (result.empty())
     {
         response = IRoute::createResponse(boost::beast::http::status::bad_request, "wrong user id!", StatusCodes::WRONG_USER_ID, -1, request);
         return false;
@@ -114,7 +113,7 @@ bool rest::KeyRequester::checkReceiverLoginInDatabase(std::shared_ptr<Response> 
         return false;
     }
 
-    if(result.empty())
+    if (result.empty())
     {
         response = IRoute::createResponse(boost::beast::http::status::bad_request, "Wrong user id!", StatusCodes::WRONG_USER_ID, -1, request);
         return false;
@@ -128,10 +127,10 @@ std::string rest::KeyRequester::createKeyExchangeMessage()
     boost::json::object obj;
     obj["request_key"] =
             {
-                    {"sender" , senderLogin},
+                    {"type",static_cast<int>(MessageType::EXCHANGE_KEYS_MESSAGE)},
+                    {"sender", senderLogin},
                     {"receiver", receiverLogin},
-                    {"sender_public_key", publicKey}
-            };
+                    {"sender_public_key", publicKey}};
     std::stringstream ss;
     ss << obj;
     return ss.str();
@@ -202,7 +201,7 @@ long long rest::KeyRequester::getSenderID() const noexcept
 
 bool rest::KeyRequester::checkIfSameUser(std::shared_ptr<Response> &response, const rest::Request &request)
 {
-    if(senderLogin == receiverLogin || senderID == receiverID)
+    if (senderLogin == receiverLogin || senderID == receiverID)
     {
         response = IRoute::createResponse(boost::beast::http::status::ok, "You cannot messaging with yourself!", StatusCodes::MESSAGING_WITH_YOURSELF, -1, request);
         return true;
