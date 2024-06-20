@@ -36,7 +36,7 @@ std::shared_ptr<rest::Response> rest::KeyRequester::handleRequest(const server::
 
     if (connections.count(receiverID))
     {
-        connections[receiverID]->asyncSend(createKeyExchangeMessage());
+        connections[receiverID]->send(createKeyExchangeMessage());
     }
     else
     {
@@ -122,12 +122,13 @@ bool rest::KeyRequester::checkReceiverLoginInDatabase(std::shared_ptr<Response> 
     receiverID = result[0]["user_id"].as<long long>();
     return true;
 }
+
 std::string rest::KeyRequester::createKeyExchangeMessage()
 {
     boost::json::object obj;
     obj["request_key"] =
             {
-                    {"type",static_cast<int>(MessageType::EXCHANGE_KEYS_MESSAGE)},
+                    {"type", static_cast<int>(MessageType::EXCHANGE_KEYS_MESSAGE)},
                     {"sender", senderLogin},
                     {"receiver", receiverLogin},
                     {"sender_public_key", publicKey}};

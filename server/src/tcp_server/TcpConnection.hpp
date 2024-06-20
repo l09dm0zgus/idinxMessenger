@@ -22,9 +22,10 @@ namespace server
         void setID(long long newID);
         long long getID() const noexcept;
         void start();
-        void asyncSend(const std::string_view &data);
+        void send(const std::string_view &data);
 
         static constexpr int RSA_KEY_LENGTH = 2048;
+        static constexpr int MESSAGE_LENGTH = RSA_KEY_LENGTH + 8128;
 
     private:
         std::shared_ptr<rest::Router> router;
@@ -41,7 +42,6 @@ namespace server
         void handleWrite([[maybe_unused]] const boost::system::error_code &error, [[maybe_unused]] std::size_t bytesTransferred, std::shared_ptr<rest::Response> response);
         void handleRead();
         void sendRSAPublicKey();
-
         void close();
     };
 }// namespace server
