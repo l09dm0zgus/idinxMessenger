@@ -4,8 +4,10 @@
 
 #include "Connection.hpp"
 #include "../http/HttpRequest.hpp"
-#include "osrng.h"
-
+#include "../messaging/MessageParser.hpp"
+#include <mutex>
+#include <osrng.h>
+#include <thread>
 
 auth::Connection::Connection(const std::string &newIp, const std::string &newPort) : socket(ioContext), resolver(ioContext), ip(newIp), port(newPort)
 {
@@ -84,6 +86,70 @@ boost::beast::http::response<boost::beast::http::dynamic_body> auth::Connection:
 {
     boost::beast::flat_buffer buffer;
     boost::beast::http::response<boost::beast::http::dynamic_body> response;
+    std::lock_guard<std::mutex> lock(readMutex);
+    isReading = true;
     boost::beast::http::read(socket, buffer, response);
+    isReading = false;
     return response;
+}
+
+void auth::Connection::disableEncryptionForNextRequest()
+{
+    isEncryptionEnabled = false;
+}
+
+void auth::Connection::handleRead()
+{
+    if (isReading)
+    {
+        return;
+    }
+
+    std::array<char, MESSAGE_LENGTH> buffer{};
+    auto self = shared_from_this();
+
+    std::lock_guard<std::mutex> lock(readMutex);
+    isReading = true;
+    socket.async_read_some(boost::asio::buffer(buffer), [this, self, &buffer](const boost::system::error_code &errorCode, std::size_t bytesTransferred) {
+        if (errorCode)
+        {
+            std::cout << errorCode.message();
+        }
+        else
+        {
+            handleParseMessage(errorCode, bytesTransferred, buffer, self);
+        }
+        isReading = false;
+    });
+}
+
+void auth::Connection::handleParseMessage([[maybe_unused]] const boost::system::error_code &error, [[maybe_unused]] std::size_t bytesTransferred, const std::array<char, MESSAGE_LENGTH> &buffer, const std::shared_ptr<Connection> &connection)
+{
+    std::string jsonString;
+    auto callback = [](const std::string_view &receiver, const std::string_view &sender, const std::string_view publicReceiverKey) {
+        std::cout << "User " << sender << " want exchange keys with you\n";
+        return true;
+    };
+
+    for (int i = 0; i < bytesTransferred; i++)
+    {
+        jsonString.push_back(buffer[i]);
+    }
+
+    messaging::MessageParser parser(connection, connectionID, callback);
+    parser.parseJSON(jsonString);
+
+    handleRead();
+}
+
+void auth::Connection::startReceivingAsyncMessages()
+{
+    handleRead();
+    auto thread = std::thread([this]() { ioContext.run(); });
+    thread.detach();
+}
+
+void auth::Connection::setID(long long newConnectionID)
+{
+    connectionID = newConnectionID;
 }
