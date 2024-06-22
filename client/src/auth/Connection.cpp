@@ -86,7 +86,6 @@ std::string auth::Connection::getIP()
 std::string auth::Connection::readResponse()
 {
     while (isLastResponseReaded) {};
-    std::cout << lastResponse << "\n";
     return lastResponse;
 }
 
@@ -129,7 +128,6 @@ void auth::Connection::handleParseMessage([[maybe_unused]] const boost::system::
     auto jsonObject = boost::json::parse(jsonString).as_object();
     if(jsonObject.if_contains("response"))
     {
-        std::cout << jsonString << "\n";
         lastResponse = jsonString;
     }
     else

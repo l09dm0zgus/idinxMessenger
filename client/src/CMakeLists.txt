@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(idinxMessenger)
 
-add_executable(${CLIENT_TARGET_NAME}
-       )
+add_executable(${CLIENT_TARGET_NAME})
 target_sources(${CLIENT_TARGET_NAME} PUBLIC main.cpp
         application/Application.cpp
         application/Application.hpp
@@ -14,7 +13,13 @@ target_sources(${CLIENT_TARGET_NAME} PUBLIC main.cpp
         database/SQLiteDatabase.cpp
         database/SQLiteDatabase.hpp
         auth/Login.cpp
-        auth/Login.hpp)
+        auth/Login.hpp
+        messaging/PublicKeyExchangeRequest.cpp
+        messaging/PublicKeyExchangeRequest.hpp
+        messaging/Message.cpp
+        messaging/Message.hpp
+        messaging/MessageParser.cpp
+        messaging/MessageParser.hpp)
 
 target_link_libraries(${CLIENT_TARGET_NAME}
         cryptopp::cryptopp

@@ -7,6 +7,8 @@
 #include "../auth/Login.hpp"
 #include "../auth/Registration.hpp"
 #include "../database/SQLiteDatabase.hpp"
+#include "../messaging/Message.hpp"
+#include "../messaging/PublicKeyExchangeRequest.hpp"
 
 std::string app::Application::getInput(const std::string_view &description)
 {
@@ -37,6 +39,14 @@ void app::Application::run()
         {
             connectToServer();
         }
+        else if(command == "request")
+        {
+            sendRequestForKeyExchange();
+        }
+        else if(command == "message")
+        {
+            startMessaging();
+        }
         else
         {
             std::cout << "Unknown command.See command - help\n";
@@ -50,6 +60,7 @@ void app::Application::showHelp()
     std::cout << "exit - exit from CLI messenger client.\n";
     std::cout << "connect - connect to messenger server.\n";
     std::cout << "message - go to  correspondence with user.\n";
+    std::cout << "request - send request to user for messaging\n";
 }
 
 app::Application::Application()
@@ -89,11 +100,13 @@ void app::Application::registerNewAccount()
         auto code = result.at("response").at("code").as_int64();
         if (code == 1)
         {
+            userLogin = accountData.login;
             addLoginAndPasswordToDatabase(accountData.login, accountData.password);
             userID = result.at("response").at("session_id").as_int64();
             std::cout << "Successful registration:)\n";
             isContinueRegistration = false;
             isAuthenticatedUser = true;
+            connection->setID(userID);
         }
         else
         {
@@ -113,19 +126,22 @@ void app::Application::registerNewAccount()
 void app::Application::authenticateUser()
 {
     db::SQLiteDatabase database;
+    connection->startReceivingAsyncMessages();
     try
     {
         auto query = database.query("SELECT * FROM users;");
         if (query.executeStep())
         {
             auth::Login log(connection);
-            auto result = log.signInAccount(query.getColumn("login"), query.getColumn("password"));
+            userLogin = query.getColumn("login").getString();
+            auto result = log.signInAccount(userLogin, query.getColumn("password").getString());
             auto code = result.at("response").at("code").as_int64();
             if (code == 1)
             {
                 userID = result.at("response").at("session_id").as_int64();
                 std::cout << "Successful sign-up:)\n";
                 isAuthenticatedUser = true;
+                connection->setID(userID);
             }
             else
             {
@@ -179,11 +195,13 @@ void app::Application::signInAccount()
         auto code = result.at("response").at("code").as_int64();
         if (code == 1)
         {
+            userLogin = login;
             addLoginAndPasswordToDatabase(login, password);
             userID = result.at("response").at("session_id").as_int64();
             std::cout << "Successful sign-up:)\n";
             isContinueLogin = false;
             isAuthenticatedUser = true;
+            connection->setID(userID);
         }
         else
         {
@@ -214,5 +232,113 @@ void app::Application::addLoginAndPasswordToDatabase(const std::string &login, c
     {
         std::cout << "Error: " << ex.what() << "\n";
         exit(-1488);
+    }
+}
+
+void app::Application::sendRequestForKeyExchange()
+{
+    if(isAuthenticatedUser)
+    {
+        std::string receiverLogin;
+        std::cout << "Please write user nickname for request: ";
+        std::cin >> receiverLogin;
+
+        if(receiverLogin == userLogin)
+        {
+            std::cout << "You cannot exchange keys with yourself!\n";
+            return;
+        }
+        db::SQLiteDatabase database;
+        auto query = database.query("SELECT * FROM key_exchange_requests WHERE private_key NOT NULL AND receiver_public_key NOT NULL AND receiver_login=?");
+        query.bind(1,receiverLogin);
+        if(query.executeStep())
+        {
+            std::cout << "You have already exchanged keys with this user!\n";
+        }
+        else
+        {
+            messaging::PublicKeyExchangeRequest request(connection);
+            auto result = request.createRequest(userID,receiverLogin);
+            auto code = result.at("response").at("code").as_int64();
+            auto what = result.at("response").at("what").as_string();
+            std::cout << what << "\n";
+        }
+    }
+    else
+    {
+        std::cout << "You must first connect to server for exchanging keys!\n";
+    }
+
+}
+
+void app::Application::startMessaging()
+{
+    if(isAuthenticatedUser)
+    {
+        int users = 0;
+        db::SQLiteDatabase database;
+        std::vector<std::string> usersLogins;
+        auto query = database.query("SELECT * FROM key_exchange_requests WHERE private_key NOT NULL AND receiver_public_key NOT NULL;");
+        std::cout << "Please select user which you want messaging (write number).\n";
+        while(query.executeStep())
+        {
+            usersLogins.push_back(query.getColumn("receiver_login"));
+            std::cout << users << " - " << query.getColumn("receiver_login") << "\n";
+            users++;
+        }
+
+        int answer;
+        std::cout << "Your answer: ";
+        std::cin >> answer;
+        if(answer >= 0 && answer < users && users > 0)
+        {
+            bool isMessaging = true;
+            while (isMessaging)
+            {
+                loadMessages(usersLogins[answer]);
+                messaging::Message message(connection,usersLogins[answer],userLogin,userID);
+
+                std::cout << "Your message:";
+                std::string msg;
+                std::getline(std::cin, msg);
+
+                if(msg == "/q")
+                {
+                    isMessaging = false;
+                    return;
+                }
+
+
+                auto response = message.send(msg);
+                auto what = response.at("response").at("what").as_string();
+                std::cout << what << "\n";
+            }
+        }
+        else
+        {
+            std::cout << "Wrong user number!\n";
+        }
+    }
+    else
+    {
+        std::cout << "For messaging you need first connect to server!\n";
+    }
+}
+
+void app::Application::loadMessages(const std::string &anotherUserLogin)
+{
+    db::SQLiteDatabase database;
+    auto query = database.query("SELECT conversation_id FROM messages WHERE sender=?");
+    query.bind(1,anotherUserLogin);
+
+    if(query.executeStep())
+    {
+        auto conservationID = query.getColumn("conversation_id").getInt64();
+        auto messagesQuery = database.query("SELECT sender , message FROM messages WHERE conversation_id=?");
+        messagesQuery.bind(1,conservationID);
+        while (messagesQuery.executeStep())
+        {
+            std::cout << messagesQuery.getColumn("sender").getString() << ":" << messagesQuery.getColumn("message").getString() << "\n";
+        }
     }
 }
