@@ -112,7 +112,11 @@ bool server::TCPConnection::decrypt(const std::string &encryptedData, std::strin
 
 void server::TCPConnection::send(const std::string_view &data)
 {
-    std::array<char,MESSAGE_LENGTH> array{};
-    std::copy(data.begin(),data.end(),array.begin());
-    boost::asio::write(stream.socket(), boost::asio::buffer(array, data.size()));
+    auto response = std::make_shared<rest::Response>(boost::beast::http::status::ok, request.version());
+    response->set(boost::beast::http::field::server, "idinxServer/1488");
+    response->set(boost::beast::http::field::content_type, "application/json");
+    response->keep_alive(request.keep_alive());
+    response->body() = data;
+    response->prepare_payload();
+    boost::beast::http::write(stream.socket(),*response);
 }
