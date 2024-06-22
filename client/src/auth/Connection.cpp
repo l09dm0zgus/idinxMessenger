@@ -5,6 +5,7 @@
 #include "Connection.hpp"
 #include "../http/HttpRequest.hpp"
 #include "../messaging/MessageParser.hpp"
+#include <iostream>
 #include <mutex>
 #include <osrng.h>
 #include <thread>
@@ -82,15 +83,11 @@ std::string auth::Connection::getIP()
     return ip;
 }
 
-boost::beast::http::response<boost::beast::http::dynamic_body> auth::Connection::readResponse()
+std::string auth::Connection::readResponse()
 {
-    boost::beast::flat_buffer buffer;
-    boost::beast::http::response<boost::beast::http::dynamic_body> response;
-    std::lock_guard<std::mutex> lock(readMutex);
-    isReading = true;
-    boost::beast::http::read(socket, buffer, response);
-    isReading = false;
-    return response;
+    while (isLastResponseReaded) {};
+    std::cout << lastResponse << "\n";
+    return lastResponse;
 }
 
 void auth::Connection::disableEncryptionForNextRequest()
@@ -100,44 +97,47 @@ void auth::Connection::disableEncryptionForNextRequest()
 
 void auth::Connection::handleRead()
 {
-    if (isReading)
-    {
-        return;
-    }
-
-    std::array<char, MESSAGE_LENGTH> buffer{};
-    auto self = shared_from_this();
-
-    std::lock_guard<std::mutex> lock(readMutex);
-    isReading = true;
-    socket.async_read_some(boost::asio::buffer(buffer), [this, self, &buffer](const boost::system::error_code &errorCode, std::size_t bytesTransferred) {
+    response = {};
+    auto self(shared_from_this());
+    isLastResponseReaded = true;
+    boost::beast::http::async_read(socket, buffer, response, [this, self](const boost::system::error_code &errorCode, std::size_t bytesTransferred) {
         if (errorCode)
         {
-            std::cout << errorCode.message();
+            std::cout  << errorCode.message();
         }
         else
         {
-            handleParseMessage(errorCode, bytesTransferred, buffer, self);
+            handleParseMessage(errorCode, bytesTransferred,self);
         }
-        isReading = false;
     });
 }
 
-void auth::Connection::handleParseMessage([[maybe_unused]] const boost::system::error_code &error, [[maybe_unused]] std::size_t bytesTransferred, const std::array<char, MESSAGE_LENGTH> &buffer, const std::shared_ptr<Connection> &connection)
+void auth::Connection::handleParseMessage([[maybe_unused]] const boost::system::error_code &errorCode,[[maybe_unused]] std::size_t bytesTransferred, const std::shared_ptr<Connection> &connection)
 {
-    std::string jsonString;
-    auto callback = [](const std::string_view &receiver, const std::string_view &sender, const std::string_view publicReceiverKey) {
+    auto exchangeKeyCallback = [](const std::string_view &receiver, const std::string_view &sender, const std::string_view publicReceiverKey) {
         std::cout << "User " << sender << " want exchange keys with you\n";
         return true;
     };
 
-    for (int i = 0; i < bytesTransferred; i++)
+    auto sentMessageCallback = [connection](const std::string_view &senderLogin,const std::string_view& message)
     {
-        jsonString.push_back(buffer[i]);
-    }
+        connection->bIsHaveNewMessages = true;
+        std::cout << "You have new message from: " << senderLogin << "\n";
+    };
 
-    messaging::MessageParser parser(connection, connectionID, callback);
-    parser.parseJSON(jsonString);
+    auto jsonString = boost::beast::buffers_to_string(response.body().data());
+    auto jsonObject = boost::json::parse(jsonString).as_object();
+    if(jsonObject.if_contains("response"))
+    {
+        std::cout << jsonString << "\n";
+        lastResponse = jsonString;
+    }
+    else
+    {
+        messaging::MessageParser parser(connection, connectionID, exchangeKeyCallback,sentMessageCallback);
+        parser.parseJSON(jsonString);
+    }
+    isLastResponseReaded = false;
 
     handleRead();
 }
@@ -145,11 +145,24 @@ void auth::Connection::handleParseMessage([[maybe_unused]] const boost::system::
 void auth::Connection::startReceivingAsyncMessages()
 {
     handleRead();
-    auto thread = std::thread([this]() { ioContext.run(); });
+    auto thread = std::thread([this]() {ioContext.run();});
     thread.detach();
 }
 
 void auth::Connection::setID(long long newConnectionID)
 {
     connectionID = newConnectionID;
+}
+
+bool auth::Connection::isHasNewMessages()
+{
+    if (bIsHaveNewMessages)
+    {
+        bIsHaveNewMessages = false;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

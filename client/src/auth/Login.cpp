@@ -27,6 +27,5 @@ boost::json::value auth::Login::signInAccount(const std::string &login, const st
 {
     auto serializedAccountData = serializeAccountData(login, password);
     connection->sendRequest<rest::Method::POST>(serializedAccountData, "/login", connection->getIP(), "application/json");
-    auto response = connection->readResponse();
-    return boost::json::parse(boost::beast::buffers_to_string(response.body().data()));
+    return boost::json::parse(connection->readResponse());
 }

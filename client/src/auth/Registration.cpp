@@ -14,8 +14,7 @@ boost::json::value auth::Registration::registerNewAccount(const auth::Registrati
 {
     auto serializedAccountData = serializeAccountData(accountData);
     connection->sendRequest<rest::Method::POST>(serializedAccountData, "/registration", connection->getIP(), "application/json");
-    auto response = connection->readResponse();
-    return boost::json::parse(boost::beast::buffers_to_string(response.body().data()));
+    return boost::json::parse(connection->readResponse());
 }
 
 std::string auth::Registration::serializeAccountData(const auth::Registration::AccountData &accountData)

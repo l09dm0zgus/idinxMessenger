@@ -9,7 +9,8 @@
 #include "boost/beast/websocket.hpp"
 #include "rsa.h"
 #include <iostream>
-#include <mutex>
+#include <future>
+#include <stack>
 
 namespace auth
 {
@@ -24,23 +25,25 @@ namespace auth
         std::string ip;
         std::string port;
         CryptoPP::RSA::PublicKey publicKey;
-        std::mutex readMutex;
+        boost::beast::flat_buffer buffer;
+        boost::beast::http::response<boost::beast::http::dynamic_body> response;
         long long connectionID;
         static constexpr int RSA_KEY_LENGTH = 2048;
         static constexpr int MESSAGE_LENGTH = RSA_KEY_LENGTH + 8128;
         bool isEncryptionEnabled = true;
-        bool isReading = false;
-
+        bool bIsHaveNewMessages;
         void readRSAPublicKey();
         bool encrypt(const std::string &data, std::string &encryptedData);
-        void handleParseMessage([[maybe_unused]] const boost::system::error_code &error, [[maybe_unused]] std::size_t bytesTransferred, const std::array<char, MESSAGE_LENGTH> &buffer, const std::shared_ptr<Connection> &connection);
+        void handleParseMessage([[maybe_unused]] const boost::system::error_code &errorCode,[[maybe_unused]] std::size_t bytesTransferred, const std::shared_ptr<Connection> &connection);
         void handleRead();
-
+        std::string lastResponse;
+        std::atomic_bool isLastResponseReaded = false;
 
     public:
         Connection(const std::string &newIp, const std::string &newPort);
         bool connectToServer();
         void startReceivingAsyncMessages();
+        bool isHasNewMessages();
         template<rest::Method method, typename... Args>
         void sendRequest(const std::string &body, Args &&...args)
         {
@@ -66,7 +69,7 @@ namespace auth
                 boost::beast::http::write(socket, *request.getBeastRequestObject());
             }
         }
-        boost::beast::http::response<boost::beast::http::dynamic_body> readResponse();
+        std::string readResponse();
         std::string getIP();
         void disableEncryptionForNextRequest();
         void setID(long long newConnectionID);
