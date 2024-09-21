@@ -6,7 +6,9 @@
 #include "../config/ServerConfig.hpp"
 #include "../http/Login.hpp"
 #include "../http/Registration.hpp"
-#include "../utils/Logger.hpp"
+#include "../http/KeyRequester.hpp"
+#include "../http/MessageSender.hpp"
+#include "../http/MessageReceiver.hpp"
 #include "TcpConnection.hpp"
 #include <iostream>
 
@@ -56,6 +58,9 @@ server::TCPServer::TCPServer() : serverAcceptor(ioContext), signals(ioContext)
     router = std::make_shared<rest::Router>();
     router->addRoute<rest::Registration>("/registration");
     router->addRoute<rest::Login>("/login", connections);
+    router->addRoute<rest::KeyRequester>("/keyExchangeRequest",connections);
+    router->addRoute<rest::MessageSender>("/sendMessage",connections);
+    router->addRoute<rest::MessageReceiver>("/availableMessages");
 
     doAsyncStop();
     startAccept();
@@ -66,11 +71,10 @@ void server::TCPServer::startAccept()
     serverAcceptor.async_accept([this](boost::system::error_code errorCode, boost::asio::ip::tcp::socket socket) {
         if (errorCode)
         {
-            std::cout << "Error: " << errorCode.message() << "\n";
+            BOOST_LOG_TRIVIAL(error) << "Error: " << errorCode.message() << "\n";
         }
         else
         {
-            std::cout << "Connected user\n";
             auto connection = std::make_shared<TCPConnection>(std::move(socket), router, *strand);
             connection->start();
             numberOfConnections++;
@@ -80,6 +84,7 @@ void server::TCPServer::startAccept()
 
             connection->setID(id.ConvertToLong());
             connections[id.ConvertToLong()] = connection;
+            BOOST_LOG_TRIVIAL(info) << "Connected client with id: " << id.ConvertToLong() << "\n";
         }
         startAccept();
     });
